@@ -1,0 +1,1 @@
+curl -X POST 127.0.0.1:8000/editCategory -d '{"id": 1,"category_name": "Yarik"}'
