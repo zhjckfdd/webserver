@@ -12,7 +12,8 @@ import qualified Types.API.CreateNews as API
 import qualified Types.API.DeleteNews as DN
 import qualified Types.API.EditNews as EN
 import Types.News
-import Types.Users
+import qualified Types.Users as TU
+import Prelude hiding (id)
 
 createNews :: Connection -> Request -> IO Response
 createNews conn req = do
@@ -20,7 +21,7 @@ createNews conn req = do
   case authResult of
     Nothing -> pure (responseLBS status401 [] "Unauthorized")
     Just user -> do
-      if (canCreateNews user) == False
+      if (TU.canCreateNews user) == False
         then pure (responseLBS status404 [] "Not Found")
         else do
           body <- getRequestBodyChunk req
@@ -29,7 +30,7 @@ createNews conn req = do
             Nothing -> pure (responseLBS status400 [] "Bad Request")
             Just createNewsReq -> do
               let parsedTitle = API.shorttitle createNewsReq
-              let parsedCreatorNews = API.creatornews createNewsReq
+              let parsedCreatorNews = TU.id user
               let parsedCategory = API.category createNewsReq
               let parsedContent = API.content createNewsReq
               let parsedPhoto = API.photo createNewsReq
@@ -52,21 +53,21 @@ deleteNews conn req = do
   case authResult of
     Nothing -> pure (responseLBS status401 [] "Unauthorized")
     Just user -> do
-      if (canCreateNews user) == False
-        then pure (responseLBS status404 [] "Not Found")
-        else do
-          body <- getRequestBodyChunk req
-          let parsingResultJSON = decodeStrict body :: Maybe DN.DeleteNewsReq
-          case parsingResultJSON of
-            Nothing -> pure (responseLBS status400 [] "Bad Request")
-            Just deleteNewsReq -> do
-              let parsedId = DN.id deleteNewsReq
-              news <- query conn "select * from news where id = ?" [parsedId] :: IO [EntityNews]
-              if null news
-                then pure (responseLBS status404 [] "News with such id does not exist")
-                else do
+      body <- getRequestBodyChunk req
+      let parsingResultJSON = decodeStrict body :: Maybe DN.DeleteNewsReq
+      case parsingResultJSON of
+        Nothing -> pure (responseLBS status400 [] "Bad Request")
+        Just deleteNewsReq -> do
+          let parsedId = DN.id deleteNewsReq
+          news <- query conn "select * from news where id = ?" [parsedId] :: IO [EntityNews]
+          case news of
+            [] -> pure (responseLBS status404 [] "News with such id does not exist")
+            (x : _) -> do
+              if (creatorId x) == (TU.id user)
+                then do
                   execute conn "delete from news where id = ?" [parsedId]
                   pure (responseLBS status200 [] "Success")
+                else pure (responseLBS status400 [] "Bad Request")
 
 editNews :: Connection -> Request -> IO Response
 editNews conn req = do
