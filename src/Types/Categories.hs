@@ -4,7 +4,7 @@ import Data.Aeson
 import Database.PostgreSQL.Simple.FromRow
 
 data EntityCategory = Category
-  { id :: Int,
+  { idCategory :: Int,
     categoryName :: String,
     canCreateCategory :: Bool
   }
@@ -15,7 +15,7 @@ instance FromRow EntityCategory where
 instance ToJSON EntityCategory where
   toJSON (Category categoryId categoryName canCreateCategory) =
     object
-      [ "id" .= categoryId,
+      [ "idCategory" .= categoryId,
         "categoryName" .= categoryName,
         "canCreateCategory" .= canCreateCategory
       ]

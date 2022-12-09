@@ -6,7 +6,7 @@ import Data.Aeson
 data EditNewsReq = EditNewsReq
   { id :: Int,
     shorttitle :: Maybe String,
-    category :: Maybe String,
+    category :: Maybe Int,
     content :: Maybe String,
     photo :: Maybe Int
   }

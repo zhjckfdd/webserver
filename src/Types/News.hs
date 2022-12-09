@@ -9,7 +9,7 @@ data EntityNews = News
     shortTitle :: String,
     dateOfCreation :: UTCTime,
     creatorId :: Int,
-    category :: String,
+    category :: Int,
     content :: String,
     photo :: Int,
     publishedNews :: Bool
