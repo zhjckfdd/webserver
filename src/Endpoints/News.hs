@@ -6,11 +6,13 @@ import Control.Monad
 import Data.Aeson (decodeStrict, encode)
 import Data.Time (UTCTime)
 import Database.PostgreSQL.Simple
+import Endpoints.Category (checkIdCategory)
 import Network.HTTP.Types.Status (status200, status400, status401, status404)
 import Network.Wai
 import qualified Types.API.CreateNews as API
 import qualified Types.API.DeleteNews as DN
 import qualified Types.API.EditNews as EN
+import Types.Categories
 import Types.News
 import qualified Types.Users as TU
 import Prelude hiding (id)
@@ -31,14 +33,14 @@ createNews conn req = do
             Just createNewsReq -> do
               let parsedTitle = API.shorttitle createNewsReq
               let parsedCreatorNews = TU.id user
-              let parsedCategory = API.category createNewsReq
+              let parsedCategory = API.categoryId createNewsReq
               let parsedContent = API.content createNewsReq
               let parsedPhoto = API.photo createNewsReq
               let parsedPublishedNews = API.publishednews createNewsReq
               execute
                 conn
-                "insert into news (shorttitle, creatornews, category, content, photo, publishednews) values (?,?,?,?,?,?)"
-                [parsedTitle, (show parsedCreatorNews), parsedCategory, parsedContent, (show parsedPhoto), (show parsedPublishedNews)]
+                "insert into news (shorttitle, creatornews, category_id, content, photo, publishednews) values (?,?,?,?,?,?)"
+                [parsedTitle, (show parsedCreatorNews), (show parsedCategory), parsedContent, (show parsedPhoto), (show parsedPublishedNews)]
               pure (responseLBS status200 [] "Success")
 
 getNews :: Connection -> Request -> IO Response
@@ -82,27 +84,46 @@ editNews conn req = do
         Just editNewsReq -> do
           let parsedId = EN.id editNewsReq
           let parsedTitle = EN.shorttitle editNewsReq
-          let parsedCategory = EN.category editNewsReq
+          let parsedCategory = EN.categoryId editNewsReq
           let parsedContent = EN.content editNewsReq
           let parsedPhoto = EN.photo editNewsReq
           news <- query conn "select * from news where id = ?" [parsedId] :: IO [EntityNews]
           case news of
             [] -> pure (responseLBS status404 [] "News with such id does not exist")
             (x : _) -> do
-              let updatingTitle = case parsedTitle of
-                    Nothing -> shortTitle x
-                    Just title -> title
-              let updatingCategory = case parsedCategory of
-                    Nothing -> category x
-                    Just category' -> category'
-              let updatingContent = case parsedContent of
-                    Nothing -> content x
-                    Just content' -> content'
-              let updatingPhoto = case parsedPhoto of
-                    Nothing -> photo x
-                    Just photo' -> photo'
-              execute
-                conn
-                "update news set shorttitle = ?, category = ?, content = ?, photo = ? where id = ?"
-                [updatingTitle, updatingCategory, updatingContent, (show updatingPhoto), (show parsedId)]
-              pure (responseLBS status200 [] "Success")
+              case parsedCategory of
+                Nothing -> do
+                  let updatingTitle = case parsedTitle of
+                        Nothing -> shortTitle x
+                        Just title -> title
+                  let updatingContent = case parsedContent of
+                        Nothing -> content x
+                        Just newContent -> newContent
+                  let updatingPhoto = case parsedPhoto of
+                        Nothing -> photo x
+                        Just photo' -> photo'
+                  execute
+                    conn
+                    "update news set shorttitle = ?, content = ?, photo = ? where id = ?"
+                    [updatingTitle, updatingContent, (show updatingPhoto), (show parsedId)]
+                  pure (responseLBS status200 [] "Success")
+                Just newCategory -> do
+                  mbId <- checkIdCategory conn req newCategory
+                  case mbId of
+                    Nothing -> pure (responseLBS status404 [] "Category with such id does not exist")
+                    Just id -> do
+                      let updatingCategory = id
+                      let updatingTitle = case parsedTitle of
+                            Nothing -> shortTitle x
+                            Just title -> title
+                      let updatingContent = case parsedContent of
+                            Nothing -> content x
+                            Just newContent -> newContent
+                      let updatingPhoto = case parsedPhoto of
+                            Nothing -> photo x
+                            Just photo' -> photo'
+                      execute
+                        conn
+                        "update news set shorttitle = ?, category_id = ?, content = ?, photo = ? where id = ?"
+                        [updatingTitle, (show updatingCategory), updatingContent, (show updatingPhoto), (show parsedId)]
+                      pure (responseLBS status200 [] "Success")

@@ -1,1 +1,1 @@
-curl -X POST 127.0.0.1:8000/editNews -d '{"shorttitle": "jokaboka", "category": "gena2", "content": "genanepena", "photo": 1, "id": 4}q'
+curl -X POST 127.0.0.1:8000/editNews -H "Authorization: Basic Ym9rYTpxd2VydHk=" -d '{"shorttitle": "bokajoka", "categoryId": "1", "content": "genapena", "photo": 2, "id": 1}'

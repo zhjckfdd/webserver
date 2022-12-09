@@ -16,7 +16,7 @@ create table news(
   shorttitle text not null,
   date_of_creation timestamp with time zone not null default CURRENT_TIMESTAMP,
   creatornews integer not null references users (id) on delete cascade,
-  category integer not null references categories (id) on delete cascade,
+  category_id integer not null references categories (id) on delete cascade,
   content text not null,
   photo integer,
   publishednews bool not null);

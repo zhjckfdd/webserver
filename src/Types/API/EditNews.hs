@@ -6,7 +6,7 @@ import Data.Aeson
 data EditNewsReq = EditNewsReq
   { id :: Int,
     shorttitle :: Maybe String,
-    category :: Maybe String,
+    categoryId :: Maybe Int,
     content :: Maybe String,
     photo :: Maybe Int
   }
@@ -15,8 +15,8 @@ instance FromJSON EditNewsReq where
   parseJSON (Object json) = do
     id <- json .: "id"
     shorttitle <- json .:? "shorttitle"
-    category <- json .:? "category"
+    categoryId <- json .:? "categoryId"
     content <- json .:? "content"
     photo <- json .:? "photo"
-    pure (EditNewsReq id shorttitle category content photo)
+    pure (EditNewsReq id shorttitle categoryId content photo)
   parseJSON _ = mzero
