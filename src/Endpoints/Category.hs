@@ -29,13 +29,13 @@ createCategory conn req = do
               let parsedCategoryName = CC.categoryName createCategoryReq
               execute
                 conn
-                "insert into category (category_name) values (?)"
+                "insert into categories (category_name) values (?)"
                 [parsedCategoryName]
               pure (responseLBS status200 [] "Success")
 
 getCategories :: Connection -> Request -> IO Response
 getCategories conn req = do
-  categories <- query_ conn "select * from category" :: IO [EntityCategory]
+  categories <- query_ conn "select * from categories" :: IO [EntityCategory]
   let doJson = encode categories
   pure (responseLBS status200 [] doJson)
 
@@ -55,12 +55,19 @@ editCategory conn req = do
             Just editCategoryReq -> do
               let parsedId = EC.categoryId editCategoryReq
               let parsedCategoryName = EC.categoryName editCategoryReq
-              category <- query conn "select * from category where id = ?" [parsedId] :: IO [EntityCategory]
+              category <- query conn "select * from categories where id = ?" [parsedId] :: IO [EntityCategory]
               case category of
                 [] -> pure (responseLBS status404 [] "Category with such id does not exist")
                 (x : _) -> do
                   execute
                     conn
-                    "update category set category_name = ? where id = ?"
+                    "update categories set category_name = ? where id = ?"
                     [parsedCategoryName, show parsedId]
                   pure (responseLBS status200 [] "Success")
+
+checkIdCategory :: Connection -> Request -> Int -> IO (Maybe Int)
+checkIdCategory conn req id = do
+  mbIdCategory <- query conn "select * from categories where id = ?" [id] :: IO [EntityCategory]
+  case mbIdCategory of
+    [] -> pure Nothing
+    (x : _) -> pure (Just id)

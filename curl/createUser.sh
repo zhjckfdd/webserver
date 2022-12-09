@@ -1,1 +1,1 @@
-curl -X POST 127.0.0.1:8000/createUser -d '{"name": "boka", "login": "bokaLogin", "pass": "123456"}'
+curl -X POST 127.0.0.1:8000/createUser -H "Authorization: Basic Ym9rYTpxd2VydHk=" -d '{"name": "Gena", "login": "joka", "pass": "pena"}'

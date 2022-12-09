@@ -5,17 +5,15 @@ import Database.PostgreSQL.Simple.FromRow
 
 data EntityCategory = Category
   { id :: Int,
-    categoryName :: String,
-    canCreateCategory :: Bool
+    categoryName :: String
   }
 
 instance FromRow EntityCategory where
-  fromRow = Category <$> field <*> field <*> field
+  fromRow = Category <$> field <*> field
 
 instance ToJSON EntityCategory where
-  toJSON (Category categoryId categoryName canCreateCategory) =
+  toJSON (Category categoryId categoryName) =
     object
       [ "id" .= categoryId,
-        "categoryName" .= categoryName,
-        "canCreateCategory" .= canCreateCategory
+        "categoryName" .= categoryName
       ]

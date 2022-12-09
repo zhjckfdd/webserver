@@ -1,1 +1,1 @@
-curl -X POST 127.0.0.1:8000/createNews -H "Authorization: Basic Ym9rYTpxd2VydHk=" -d '{"shorttitle": "gokajoka", "creatornews": 1, "category": "ddoka2", "content": "genapena", "photo": 0, "publishednews": true}'
+curl -X POST 127.0.0.1:8000/createNews -H "Authorization: Basic Ym9rYTpxd2VydHk=" -d '{"shorttitle": "gokajoka", "creatornews": 1, "categoryId": 1, "content": "genapena", "photo": 0, "publishednews": true}'
